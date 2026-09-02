@@ -1,0 +1,72 @@
+#include <stdlib.h>
+#include <string.h>
+
+int findIndex(double* arr, int size, double val) {
+    int low = 0, high = size - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] == val) return mid;
+        if (arr[mid] < val) low = mid + 1;
+        else high = mid - 1;
+    }
+    return -1;
+}
+
+int findInsertPosition(double* arr, int size, double val) {
+    int low = 0, high = size - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] == val) return mid;
+        if (arr[mid] < val) low = mid + 1;
+        else high = mid - 1;
+    }
+    return low;
+}
+
+double* medianSlidingWindow(int* nums, int numsSize, int k, int* returnSize) {
+    *returnSize = numsSize - k + 1;
+    double* result = (double*)malloc((*returnSize) * sizeof(double));
+    double* window = (double*)malloc(k * sizeof(double));
+    
+    for (int i = 0; i < k; i++) {
+        window[i] = (double)nums[i];
+    }
+    
+    for (int i = 1; i < k; i++) {
+        double key = window[i];
+        int j = i - 1;
+        while (j >= 0 && window[j] > key) {
+            window[j + 1] = window[j];
+            j--;
+        }
+        window[j + 1] = key;
+    }
+    
+    if (k % 2 == 1) {
+        result[0] = window[k / 2];
+    } else {
+        result[0] = (window[k / 2 - 1] + window[k / 2]) / 2.0;
+    }
+    
+    int resIdx = 1;
+    for (int i = k; i < numsSize; i++) {
+        double elementToRemove = (double)nums[i - k];
+        double elementToAdd = (double)nums[i];
+        
+        int remIdx = findIndex(window, k, elementToRemove);
+        memmove(&window[remIdx], &window[remIdx + 1], (k - remIdx - 1) * sizeof(double));
+        
+        int insIdx = findInsertPosition(window, k - 1, elementToAdd);
+        memmove(&window[insIdx + 1], &window[insIdx], (k - insIdx - 1) * sizeof(double));
+        window[insIdx] = elementToAdd;
+        
+        if (k % 2 == 1) {
+            result[resIdx++] = window[k / 2];
+        } else {
+            result[resIdx++] = (window[k / 2 - 1] + window[k / 2]) / 2.0;
+        }
+    }
+    
+    free(window);
+    return result;
+}
